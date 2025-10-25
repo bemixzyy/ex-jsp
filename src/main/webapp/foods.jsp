@@ -19,7 +19,7 @@
 <div class="container my-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h3 class="text-primary">Danh sách món ăn đang bán</h3>
-        <a href="add-food" class="btn btn-success">+ Thêm món ăn</a>
+        <a href="${pageContext.request.contextPath}/add-food" class="btn btn-success">+ Thêm món ăn</a>
     </div>
 
     <table class="table table-bordered table-striped table-hover">

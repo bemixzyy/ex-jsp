@@ -5,13 +5,44 @@ import com.t2404.restaurant.entity.FoodStatus;
 import com.t2404.restaurant.util.MySQLConnector;
 
 import java.sql.*;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Repository (DAO) dùng để thao tác CRUD với bảng foods.
- */
 public class FoodRepository {
+
+    public boolean save(Food food) {
+        String sql = "INSERT INTO foods (code, name, category_code, description, image_path, price, start_date, status) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+
+        try (Connection conn = MySQLConnector.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            // Gán giá trị vào câu lệnh SQL
+            stmt.setString(1, food.getCode());
+            stmt.setString(2, food.getName());
+            stmt.setString(3, food.getCategoryCode());
+            stmt.setString(4, food.getDescription());
+            stmt.setString(5, food.getImagePath());
+            stmt.setBigDecimal(6, food.getPrice());
+
+            // Nếu startDate bị null thì mặc định là ngày hôm nay
+            LocalDate start = food.getStartDate() != null ? food.getStartDate() : LocalDate.now();
+            stmt.setDate(7, Date.valueOf(start));
+
+            // Enum lưu dưới dạng chuỗi (ví dụ: DANG_BAN)
+            stmt.setString(8, food.getStatus().name());
+
+            int rows = stmt.executeUpdate();
+            System.out.println("✅ Thêm món ăn thành công (" + rows + " dòng)");
+            return rows > 0;
+
+        } catch (SQLException e) {
+            System.err.println("❌ Lỗi khi thêm món ăn: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
 
     public List<Food> findAllSelling() {
         List<Food> list = new ArrayList<>();
@@ -104,5 +135,51 @@ public class FoodRepository {
             e.printStackTrace();
             return false;
         }
+    }
+
+    public Food findById(int id) {
+        String sql = "SELECT * FROM foods WHERE id = ?";
+
+        try (Connection conn = MySQLConnector.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, id);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapResultSetToFood(rs);
+                }
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    private Food mapResultSetToFood(ResultSet rs) throws SQLException {
+        Food food = new Food();
+        food.setId(rs.getInt("id"));
+        food.setCode(rs.getString("code"));
+        food.setName(rs.getString("name"));
+        food.setCategoryCode(rs.getString("category_code"));
+        food.setDescription(rs.getString("description"));
+        food.setImagePath(rs.getString("image_path"));
+        food.setPrice(rs.getBigDecimal("price"));
+
+        Date start = rs.getDate("start_date");
+        if (start != null) {
+            food.setStartDate(start.toLocalDate());
+        }
+
+        Timestamp updated = rs.getTimestamp("update_date");
+        if (updated != null) {
+            food.setUpdateDate(updated.toLocalDateTime());
+        }
+
+        food.setStatus(FoodStatus.valueOf(rs.getString("status")));
+
+        return food;
     }
 }

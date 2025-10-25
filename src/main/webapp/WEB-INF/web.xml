@@ -12,4 +12,12 @@
         <servlet-name>FoodController</servlet-name>
         <url-pattern>/</url-pattern>
     </servlet-mapping>
+    <servlet>
+        <servlet-name>CreateFoodServlet</servlet-name>
+        <servlet-class>com.t2404.restaurant.controller.CreateFoodServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>CreateFoodServlet</servlet-name>
+        <url-pattern>/add-food</url-pattern>
+    </servlet-mapping>
 </web-app>
